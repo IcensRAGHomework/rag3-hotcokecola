@@ -96,7 +96,45 @@ def generate_hw02(question, city, store_type, start_date, end_date):
     return filtered_names
     
 def generate_hw03(question, store_name, new_store_name, city, store_type):
-    pass
+    
+    #get collection from hw1
+    collection = generate_hw01()
+    
+    #find store_name
+    results = collection.query(
+        query_texts = [store_name],
+        n_results = 1
+    )
+
+    #print(results)
+    #print(results['ids'][0][0])
+    
+    collection.update(
+        ids = results['ids'][0][0],  # Assuming the ID of the item to update is '1'
+        metadatas = {'name': new_store_name}
+    )
+
+    #query user question
+    results = collection.query(
+        query_texts = question,
+        n_results = 10,
+        where={"$and":
+                [{'city' : {"$in": city}}, 
+                {'type' : {"$in": store_type}}]
+            }
+    )
+
+    # Filter names based on the distance threshold   
+    threshold = 0.8
+    distances = results['distances'][0]
+    distances = [1 - distance for distance in distances]
+    metadatas = results['metadatas'][0]
+    #print(distances)
+    #print(metadatas) 
+    filtered_names = [metadata['name'] for distance, metadata in zip(distances, metadatas) if distance > threshold]
+    #print(filtered_names)
+    
+    return filtered_names
     
 def demo(question):
     chroma_client = chromadb.PersistentClient(path=dbpath)
