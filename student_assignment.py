@@ -12,9 +12,11 @@ gpt_emb_version = 'text-embedding-ada-002'
 gpt_emb_config = get_model_configuration(gpt_emb_version)
 
 dbpath = "./"
+csv_file = 'COA_OpenData.csv'
 
-def generate_hw01(): 
-    # Create embedding function
+def generate_hw01():
+
+    # Create embedding function   
     openai_ef = embedding_functions.OpenAIEmbeddingFunction(
         api_key = gpt_emb_config['api_key'],
         api_base = gpt_emb_config['api_base'],
@@ -22,17 +24,17 @@ def generate_hw01():
         api_version = gpt_emb_config['api_version'],
         deployment_id = gpt_emb_config['deployment_name']
     )
-
-    # Initialize ChromaDB client
-    client = chromadb.Client()
     
-    # Create a new collection
-    collection = client.create_collection(
-        name="TRAVEL", 
-        metadata={"hnsw:space": "cosine"},
-        embedding_function = openai_ef
-    )
+    # Initialize ChromaDB client
+    client = chromadb.PersistentClient(path=dbpath)
 
+    # Create a new collection
+    collection = client.get_or_create_collection(
+        name="TRAVEL",
+        metadata={"hnsw:space": "cosine"},
+        embedding_function=openai_ef
+    ) 
+    
     # Function to parse dates and calculate seconds from the epoch start date
     def calculate_unix_timestamp(date_str):
         # Parse the given date
@@ -40,18 +42,15 @@ def generate_hw01():
         # Return the Unix timestamp
         return int(date.timestamp())
 
-    # Read CSV file into a DataFrame
-    csv_file_path = 'COA_OpenData.csv'
-
-    with open(csv_file_path, mode='r', encoding='utf-8-sig') as file:
+    with open(csv_file, mode='r', encoding='utf-8-sig') as file:
         csv_reader = csv.DictReader(file)
         #headers = csv_reader.fieldnames
         #print("CSV Headers:", headers)  # Print headers to verify   
-
+    
         for row in csv_reader:
             # Add metadata to the collection
             collection.add(
-                ids=str(row['ID']),
+                ids=row['ID'],
                 documents=row['HostWords'],
                 metadatas={
                     'name': row['Name'],
@@ -63,7 +62,7 @@ def generate_hw01():
                     'date': calculate_unix_timestamp(row['CreateDate'])
                 }
             )
-
+    
     return collection
     
 def generate_hw02(question, city, store_type, start_date, end_date):
