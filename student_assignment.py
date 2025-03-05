@@ -42,24 +42,25 @@ def generate_hw01():
         # Return the Unix timestamp
         return int(date.timestamp())
 
-    with open(csv_file, mode='r', encoding='utf-8-sig') as file:
-        csv_reader = csv.DictReader(file) 
-    
-        for row in csv_reader:
-            # Add metadata to the collection
-            collection.add(
-                ids=row['ID'],
-                documents=row['HostWords'],
-                metadatas={
-                    'name': row['Name'],
-                    'type': row['Type'],
-                    'address': row['Address'],
-                    'tel': row['Tel'],
-                    'city': row['City'],
-                    'town': row['Town'],
-                    'date': calculate_unix_timestamp(row['CreateDate'])
-                }
-            )
+    if collection.count() == 0:
+        with open(csv_file, mode='r', encoding='utf-8-sig') as file:
+            csv_reader = csv.DictReader(file) 
+        
+            for row in csv_reader:
+                # Add metadata to the collection
+                collection.add(
+                    ids=row['ID'],
+                    documents=row['HostWords'],
+                    metadatas={
+                        'name': row['Name'],
+                        'type': row['Type'],
+                        'address': row['Address'],
+                        'tel': row['Tel'],
+                        'city': row['City'],
+                        'town': row['Town'],
+                        'date': calculate_unix_timestamp(row['CreateDate'])
+                    }
+                )
     
     return collection
     
