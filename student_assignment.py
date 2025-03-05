@@ -65,7 +65,35 @@ def generate_hw01():
     return collection
     
 def generate_hw02(question, city, store_type, start_date, end_date):
-    pass
+    #get collection from hw1
+    collection = generate_hw01()
+    
+    results = collection.query(
+        query_texts = question,
+        n_results = 10,
+        where={"$and":
+                [{'city' : {"$in": city}}, 
+                {'type' : {"$in": store_type}},
+                {'date' : {"$gte": int(start_date.timestamp())}},
+                {'date' : {"$lte": int(end_date.timestamp())}}]
+            }
+    )
+
+    #print(results)
+
+
+    # Filter names based on the distance threshold   
+    threshold = 0.8
+    distances = results['distances'][0]
+    distances = [1 - distance for distance in distances]
+    metadatas = results['metadatas'][0]
+    #print(distances)
+    #print(metadatas)
+
+    filtered_names = [metadata['name'] for distance, metadata in zip(distances, metadatas) if distance > threshold]
+    #print(filtered_names)
+
+    return filtered_names
     
 def generate_hw03(question, store_name, new_store_name, city, store_type):
     pass
