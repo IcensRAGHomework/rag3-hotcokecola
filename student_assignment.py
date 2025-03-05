@@ -26,10 +26,10 @@ def generate_hw01():
     )
     
     # Initialize ChromaDB client
-    client = chromadb.PersistentClient(path=dbpath)
+    chroma_client = chromadb.PersistentClient(path=dbpath)
 
     # Create a new collection
-    collection = client.get_or_create_collection(
+    collection = chroma_client.get_or_create_collection(
         name="TRAVEL",
         metadata={"hnsw:space": "cosine"},
         embedding_function=openai_ef
@@ -43,9 +43,7 @@ def generate_hw01():
         return int(date.timestamp())
 
     with open(csv_file, mode='r', encoding='utf-8-sig') as file:
-        csv_reader = csv.DictReader(file)
-        #headers = csv_reader.fieldnames
-        #print("CSV Headers:", headers)  # Print headers to verify   
+        csv_reader = csv.DictReader(file) 
     
         for row in csv_reader:
             # Add metadata to the collection
